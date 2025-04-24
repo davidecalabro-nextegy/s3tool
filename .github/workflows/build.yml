@@ -44,6 +44,7 @@ jobs:
         pip install pyinstaller
 
     - name: Install/Setup UPX
+      if: matrix.upx_command != ''
       run: ${{ matrix.upx_command }}
       shell: bash
 
