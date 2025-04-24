@@ -1,0 +1,74 @@
+# .github/workflows/build.yml
+name: Build Executables
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false # Prevent other jobs from cancelling if one fails
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            artifact_name: s3tool-linux
+            executable_name: s3tool-linux
+            upx_command: |
+              sudo apt-get update
+              sudo apt-get install -y upx-ucl
+              echo "UPX_ARGS=--best --lzma" >> $GITHUB_ENV
+          - os: windows-latest
+            artifact_name: s3tool-windows
+            executable_name: s3tool-win.exe
+            upx_command: |
+              choco install upx
+              echo "UPX_ARGS=--best --lzma" >> $GITHUB_ENV
+              # UPX installed via Chocolatey is usually added to PATH, so --upx-dir might not be needed
+              # echo "UPX_DIR=C:\ProgramData\chocolatey\lib\upx\tools" >> $GITHUB_ENV
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10' # Or your preferred Python version
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Install/Setup UPX
+      if: matrix.upx_command != '' # Only run if UPX command is defined for the OS
+      run: ${{ matrix.upx_command }}
+      shell: bash # Ensure bash is used for Linux commands even on Windows runner if needed
+
+    - name: Build executable with PyInstaller and UPX
+      run: |
+        pyinstaller --name ${{ matrix.executable_name }} \
+                    --onefile \
+                    --clean \
+                    ${{ env.UPX_DIR && format('--upx-dir "{0}"', env.UPX_DIR) || '' }} \
+                    ${{ env.UPX_ARGS || '' }} \
+                    main.py
+      # Note: PyInstaller should find UPX in PATH on both OSes after installation steps above.
+      # The --upx-dir argument is a fallback if needed.
+
+    - name: List dist directory contents (for debugging)
+      run: ls -R dist/
+      shell: bash # Use bash for ls command consistency
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: dist/${{ matrix.executable_name }}
+        if-no-files-found: error # Fail the workflow if the executable wasn't created
