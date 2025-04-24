@@ -17,8 +17,8 @@ A simple Python script to interact with S3-compatible storage using the command 
 
 1.  **Clone the repository (optional):**
     ```bash
-    git clone <your-repo-url>
-    cd s3-tool-directory
+    git clone https://github.com/davidecalabro-nextegy/s3tool.git
+    cd s3tool
     ```
 2.  **Install dependencies:**
     Navigate to the project directory in your terminal and run:
