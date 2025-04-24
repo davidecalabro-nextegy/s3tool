@@ -26,7 +26,6 @@ jobs:
             executable_name: s3tool-win.exe
             upx_command: |
               choco install upx
-              echo "UPX_ARGS=--best --lzma" >> $GITHUB_ENV
               echo "UPX_DIR=C:\ProgramData\chocolatey\lib\upx\tools" >> $GITHUB_ENV
 
     steps:
@@ -54,6 +53,7 @@ jobs:
                     --onefile \
                     --clean \
                     main.py
+      shell: bash
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
