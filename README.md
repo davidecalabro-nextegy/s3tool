@@ -11,7 +11,7 @@ A simple Python script to interact with S3-compatible storage using the command 
 
 ## Prerequisites
 
-*   Python 3.12 or higher
+*   Python 3.12 or higher if using the python script directly.
 
 ## Installation & Setup
 
