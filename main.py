@@ -77,8 +77,9 @@ class Bucket:
     def delete_file(self, file_name: str) -> None:
         try:
             bucket = self.get_bucket(self.__bucket_name)
-            bucket.delete_objects(Delete={'Objects': [{'Key': file_name}]})
-            print(f"Deleted '{file_name}' from bucket '{self.__bucket_name}'")
+            # Try to get object
+            s3_object = bucket.Object(file_name)
+            s3_object.delete()
         except Exception as e:
             raise Exception(f"Error deleting file '{file_name}' from bucket '{self.__bucket_name}': {e}")
 
